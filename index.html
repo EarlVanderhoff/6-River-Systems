@@ -1,0 +1,247 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Altice-CYTEC RF Matrix</title>
+    <script src="//code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function() {
+            // Use a "/test" namespace.
+            // An application can open a connection on multiple namespaces, and
+            // Socket.IO will multiplex all those connections on a single
+            // physical channel. If you don't care about multiple channels, you
+            // can set the namespace to an empty string.
+            namespace = '/test';
+
+            // Connect to the Socket.IO server.
+            // The connection URL has the following format, relative to the current page:
+            //     http[s]://<domain>:<port>[/<namespace>]
+            var socket = io(namespace);
+
+            // Event handler for new connections.
+            // The callback function is invoked when a connection with the
+            // server is established.
+            socket.on('connect', function() {
+                socket.emit('my_event', {data: 'Connected.'});
+            });
+
+            // Event handler for server sent data.
+            // The callback function is invoked whenever the server emits data
+            // to the client. The data is then displayed in the "Received"
+            // section of the page.
+            socket.on('my_response', function(msg, cb) {
+                //$('#log').append('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
+                var dadate= new Date($.now());
+                $('#submit_label').text(msg.data + ": " + dadate);
+                if (cb)
+                    cb();
+            });
+
+            socket.on('rack_response', function(msg, cb) {
+                $('#sel1_data').val(msg[1].number);
+                $('#sel2_data').val(msg[2].number);
+                $('#sel3_data').val(msg[3].number);
+                $('#sel4_data').val(msg[4].number);
+                $('#sel5_data').val(msg[5].number);
+                $('#sel6_data').val(msg[6].number);
+                $('#sel7_data').val(msg[7].number);
+                $('#sel8_data').val(msg[8].number);
+                $('#sel1_label').text(msg[1].name);
+                $('#sel2_label').text(msg[2].name);
+                $('#sel3_label').text(msg[3].name);
+                $('#sel4_label').text(msg[4].name);
+                $('#sel5_label').text(msg[5].name);
+                $('#sel6_label').text(msg[6].name);
+                $('#sel7_label').text(msg[7].name);
+                $('#sel8_label').text(msg[8].name);
+                if (cb)
+                    cb();
+            });
+
+            socket.on('submit_response', function(msg, cb) {
+                if (msg[0].number == $('#rack_data').val()) {
+                    $('#sel1_data').val(msg[1].number);
+                    $('#sel2_data').val(msg[2].number);
+                    $('#sel3_data').val(msg[3].number);
+                    $('#sel4_data').val(msg[4].number);
+                    $('#sel5_data').val(msg[5].number);
+                    $('#sel6_data').val(msg[6].number);
+                    $('#sel7_data').val(msg[7].number);
+                    $('#sel8_data').val(msg[8].number);
+                    $('#sel1_label').text(msg[1].name);
+                    $('#sel2_label').text(msg[2].name);
+                    $('#sel3_label').text(msg[3].name);
+                    $('#sel4_label').text(msg[4].name);
+                    $('#sel5_label').text(msg[5].name);
+                    $('#sel6_label').text(msg[6].name);
+                    $('#sel7_label').text(msg[7].name);
+                    $('#sel8_label').text(msg[8].name);
+                    $('#submit_label').text("updated");
+                    var dadate= new Date($.now());
+                    $('#submit_label').text("updated: " + dadate);
+                }
+                if (cb)
+                    cb();
+            });
+
+            // Handlers for the different forms in the page.
+            // These accept data from the user and send it to the server in a
+            // variety of ways
+            $('form#emit').submit(function(event) {
+                socket.emit('my_event', {data: $('#emit_data').val()});
+                return false;
+            });
+            $('form#broadcast').submit(function(event) {
+                socket.emit('my_broadcast_event', {data: $('#broadcast_data').val()});
+                return false;
+            });
+            $('form#selectrack').change(function() {
+                socket.emit('rackselect_event', {rack: $('#rack_data').val()});
+                return false;                
+            });
+            $('form#selectdata').submit(function(event) {
+                refreshval = false
+                exclusiveval = false
+                if ($('#refreshALL').is(':checked')) {
+                    refreshval = true
+                }
+                if ($('#exclusive').is(':checked')) {
+                    exclusiveval = true
+                }
+                $('#submit_label').text("---")
+                rackNo = $('#rack_data').val()
+                socket.emit('submit_event', [{'check':'refresh', 'value':refreshval},
+            {'check':'exclusive','value':exclusiveval}, {'name':'rack','number':rackNo},
+			{'name':'shelf_1', 'number':$('#sel1_data').val()},
+            {'name':'shelf_2', 'number':$('#sel2_data').val()},
+			{'name':'shelf_3', 'number':$('#sel3_data').val()},
+            {'name':'shelf_4', 'number':$('#sel4_data').val()},
+			{'name':'shelf_5', 'number':$('#sel5_data').val()}, 
+            {'name':'shelf_6', 'number':$('#sel6_data').val()},
+			{'name':'shelf_7', 'number':$('#sel7_data').val()},
+            {'name':'shelf_8', 'number':$('#sel8_data').val()}]);
+                return false;
+            });
+        });
+    </script>
+</head>
+<body>
+    <h3><font color="white"><span style="background-color: #FF8040">ALTICE</span></font>/CYTEC Matrix Control</h3>
+     
+    <form id="selectrack" name="selectrack" method="POST" action='#'>
+        <select id="rack_data" name="rack_data">
+            <option value="0">one</option>
+            <option value="1">two</option>
+            <option value="2">three</option>
+            <option value="3">four</option>
+            <option value="4">five</option>
+            <option value="5">six</option>
+            <option value="6">seven</option>
+            <option value="7">eight</option>
+        </select>
+    </form>
+    <p></p>
+    <form id="selectdata" name="selectdata" method="POST" action='#'>
+    <fieldset>
+        <div id='shelves' size=auto>
+        <font size="2">
+        <select id="sel1_data" name="shelf_1">
+            <option value="0" {% if (context[1]['number'] == '0') %} selected {% endif %}>{{ context[9]['name'] }}</option>
+            <option value="1" {% if (context[1]['number'] == '1') %} selected {% endif %}>{{ context[10]['name'] }}</option>
+            <option value="2" {% if (context[1]['number'] == '2') %} selected {% endif %}>{{ context[11]['name'] }}</option>
+            <option value="3" {% if (context[1]['number'] == '3') %} selected {% endif %}>{{ context[12]['name'] }}</option>
+            <option value="4" {% if (context[1]['number'] == '4') %} selected {% endif %}>{{ context[13]['name'] }}</option>
+            <option value="5" {% if (context[1]['number'] == '5') %} selected {% endif %}>{{ context[14]['name'] }}</option>
+            <option value="6" {% if (context[1]['number'] == '6') %} selected {% endif %}>{{ context[15]['name'] }}</option>
+            <option value="7" {% if (context[1]['number'] == '7') %} selected {% endif %}>{{ context[16]['name'] }}</option>
+        </select>
+        <label for="sel1_data" id="sel1_label" name="sel1_label" font="2">{{ context[1]['name'] }}</label><br>
+        <select id="sel2_data" name="shelf_2">
+            <option value="0" {% if (context[2]['number'] == '0') %} selected {% endif %}>{{ context[9]['name'] }}</option>
+            <option value="1" {% if (context[2]['number'] == '1') %} selected {% endif %}>{{ context[10]['name'] }}</option>
+            <option value="2" {% if (context[2]['number'] == '2') %} selected {% endif %}>{{ context[11]['name'] }}</option>
+            <option value="3" {% if (context[2]['number'] == '3') %} selected {% endif %}>{{ context[12]['name'] }}</option>
+            <option value="4" {% if (context[2]['number'] == '4') %} selected {% endif %}>{{ context[13]['name'] }}</option>
+            <option value="5" {% if (context[2]['number'] == '5') %} selected {% endif %}>{{ context[14]['name'] }}</option>
+            <option value="6" {% if (context[2]['number'] == '6') %} selected {% endif %}>{{ context[15]['name'] }}</option>
+            <option value="7" {% if (context[2]['number'] == '7') %} selected {% endif %}>{{ context[16]['name'] }}</option>
+        </select>
+        <label for="sel2_data" id="sel2_label" name="sel2_label">{{ context[2]['name'] }}</label><br>
+        <select id="sel3_data" name="shelf_3">
+            <option value="0" {% if (context[3]['number'] == '0') %} selected {% endif %}>{{ context[9]['name'] }}</option>
+            <option value="1" {% if (context[3]['number'] == '1') %} selected {% endif %}>{{ context[10]['name'] }}</option>
+            <option value="2" {% if (context[3]['number'] == '2') %} selected {% endif %}>{{ context[11]['name'] }}</option>
+            <option value="3" {% if (context[3]['number'] == '3') %} selected {% endif %}>{{ context[12]['name'] }}</option>
+            <option value="4" {% if (context[3]['number'] == '4') %} selected {% endif %}>{{ context[13]['name'] }}</option>
+            <option value="5" {% if (context[3]['number'] == '5') %} selected {% endif %}>{{ context[14]['name'] }}</option>
+            <option value="6" {% if (context[3]['number'] == '6') %} selected {% endif %}>{{ context[15]['name'] }}</option>
+            <option value="7" {% if (context[3]['number'] == '7') %} selected {% endif %}>{{ context[16]['name'] }}</option>
+        </select>
+        <label for="sel3_data" id="sel3_label" name="sel3_label">{{ context[3]['name'] }}</label><br>
+        <select id="sel4_data" name="shelf_4">
+            <option value="0" {% if (context[4]['number'] == '0') %} selected {% endif %}>{{ context[9]['name'] }}</option>
+            <option value="1" {% if (context[4]['number'] == '1') %} selected {% endif %}>{{ context[10]['name'] }}</option>
+            <option value="2" {% if (context[4]['number'] == '2') %} selected {% endif %}>{{ context[11]['name'] }}</option>
+            <option value="3" {% if (context[4]['number'] == '3') %} selected {% endif %}>{{ context[12]['name'] }}</option>
+            <option value="4" {% if (context[4]['number'] == '4') %} selected {% endif %}>{{ context[13]['name'] }}</option>
+            <option value="5" {% if (context[4]['number'] == '5') %} selected {% endif %}>{{ context[14]['name'] }}</option>
+            <option value="6" {% if (context[4]['number'] == '6') %} selected {% endif %}>{{ context[15]['name'] }}</option>
+            <option value="7" {% if (context[4]['number'] == '7') %} selected {% endif %}>{{ context[16]['name'] }}</option>
+        </select>
+        <label for="sel4_data" id="sel4_label" name="sel4_label">{{ context[4]['name'] }}</label><br>
+        <select id="sel5_data" name="shelf_5">
+            <option value="0" {% if (context[5]['number'] == '0') %} selected {% endif %}>{{ context[9]['name'] }}</option>
+            <option value="1" {% if (context[5]['number'] == '1') %} selected {% endif %}>{{ context[10]['name'] }}</option>
+            <option value="2" {% if (context[5]['number'] == '2') %} selected {% endif %}>{{ context[11]['name'] }}</option>
+            <option value="3" {% if (context[5]['number'] == '3') %} selected {% endif %}>{{ context[12]['name'] }}</option>
+            <option value="4" {% if (context[5]['number'] == '4') %} selected {% endif %}>{{ context[13]['name'] }}</option>
+            <option value="5" {% if (context[5]['number'] == '5') %} selected {% endif %}>{{ context[14]['name'] }}</option>
+            <option value="6" {% if (context[5]['number'] == '6') %} selected {% endif %}>{{ context[15]['name'] }}</option>
+            <option value="7" {% if (context[5]['number'] == '7') %} selected {% endif %}>{{ context[16]['name'] }}</option>
+        </select>
+        <label for="sel5_data" id="sel5_label" name="sel5_label">{{ context[5]['name'] }}</label><br>
+        <select id="sel6_data" name="shelf_6">
+            <option value="0" {% if (context[6]['number'] == '0') %} selected {% endif %}>{{ context[9]['name'] }}</option>
+            <option value="1" {% if (context[6]['number'] == '1') %} selected {% endif %}>{{ context[10]['name'] }}</option>
+            <option value="2" {% if (context[6]['number'] == '2') %} selected {% endif %}>{{ context[11]['name'] }}</option>
+            <option value="3" {% if (context[6]['number'] == '3') %} selected {% endif %}>{{ context[12]['name'] }}</option>
+            <option value="4" {% if (context[6]['number'] == '4') %} selected {% endif %}>{{ context[13]['name'] }}</option>
+            <option value="5" {% if (context[6]['number'] == '5') %} selected {% endif %}>{{ context[14]['name'] }}</option>
+            <option value="6" {% if (context[6]['number'] == '6') %} selected {% endif %}>{{ context[15]['name'] }}</option>
+            <option value="7" {% if (context[6]['number'] == '7') %} selected {% endif %}>{{ context[16]['name'] }}</option>
+        </select>
+        <label for="sel6_data" id="sel6_label" name="sel6_label">{{ context[6]['name'] }}</label><br>
+        <select id="sel7_data" name="shelf_7">
+            <option value="0" {% if (context[7]['number'] == '0') %} selected {% endif %}>{{ context[9]['name'] }}</option>
+            <option value="1" {% if (context[7]['number'] == '1') %} selected {% endif %}>{{ context[10]['name'] }}</option>
+            <option value="2" {% if (context[7]['number'] == '2') %} selected {% endif %}>{{ context[11]['name'] }}</option>
+            <option value="3" {% if (context[7]['number'] == '3') %} selected {% endif %}>{{ context[12]['name'] }}</option>
+            <option value="4" {% if (context[7]['number'] == '4') %} selected {% endif %}>{{ context[13]['name'] }}</option>
+            <option value="5" {% if (context[7]['number'] == '5') %} selected {% endif %}>{{ context[14]['name'] }}</option>
+            <option value="6" {% if (context[7]['number'] == '6') %} selected {% endif %}>{{ context[15]['name'] }}</option>
+            <option value="7" {% if (context[7]['number'] == '7') %} selected {% endif %}>{{ context[16]['name'] }}</option>
+        </select>
+        <label for="sel7_data" id="sel7_label" name="sel7_label">{{ context[7]['name'] }}</label><br>
+        <select id="sel8_data" name="shelf_8">
+            <option value="0" {% if (context[8]['number'] == '0') %} selected {% endif %}>{{ context[9]['name'] }}</option>
+            <option value="1" {% if (context[8]['number'] == '1') %} selected {% endif %}>{{ context[10]['name'] }}</option>
+            <option value="2" {% if (context[8]['number'] == '2') %} selected {% endif %}>{{ context[11]['name'] }}</option>
+            <option value="3" {% if (context[8]['number'] == '3') %} selected {% endif %}>{{ context[12]['name'] }}</option>
+            <option value="4" {% if (context[8]['number'] == '4') %} selected {% endif %}>{{ context[13]['name'] }}</option>
+            <option value="5" {% if (context[8]['number'] == '5') %} selected {% endif %}>{{ context[14]['name'] }}</option>
+            <option value="6" {% if (context[8]['number'] == '6') %} selected {% endif %}>{{ context[15]['name'] }}</option>
+            <option value="7" {% if (context[8]['number'] == '7') %} selected {% endif %}>{{ context[16]['name'] }}</option>
+        </select>
+        <label for="sel8_data" id="sel8_label" name="sel8_label">{{ context[8]['name'] }}</label><br>
+        </div>
+        </fieldset> 
+        <input type="checkbox" name="refreshALL" id="refreshALL" value="refreshALL"> refresh ALL
+        <input type="checkbox" name="exclusive" id="exclusive" value="exclusive" checked> exclusive<br><br>
+        <input type="submit" id="submit" value="Submit">
+        <label for="submit" id="submit_label" name="submit_label"></label>
+        </font>
+    </form>
+
+    <div id="log"></div>
+</body>
+</html>

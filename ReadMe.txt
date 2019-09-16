@@ -1,0 +1,2 @@
+Basic flask.socketio example.
+Here I took a CYTECT RF Matrix Router, which only has a single port availability, and built what is essentially (almost) a state machine (BackgroundWorker.py), a CLI interface (CLI.py) for machine-machine, and a multi-user Web UI (app.py)
